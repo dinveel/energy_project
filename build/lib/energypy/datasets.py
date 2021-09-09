@@ -109,9 +109,7 @@ class NEMDataset(AbstractDataset):
         logger=None
     ):  # FINE
         self.n_batteries = n_batteries
-        print('No problem')
         self.price_col = price_col
-        print('Problem HERE')
 
         train_episodes = load_episodes(train_episodes)
         self.episodes = {
@@ -174,7 +172,7 @@ class NEMDataset(AbstractDataset):
         ds = defaultdict(list)
         for episode in episodes:
             episode = self.episodes['test'][episode].copy()
-            prices = episode.pop(self.price_buy_col)
+            prices = episode.pop(self.price_col)
             ds['prices'].append(prices.reset_index(drop=True))
             ds['features'].append(episode.reset_index(drop=True))
 
@@ -200,9 +198,9 @@ if __name__ == '__main__':
     
     train_episodes = 'data/train/'
     test_episodes= 'data/submit/'
-    price_col = 'price_buy_00'
+    price_buy_col = 'price_buy_00'
 
-    dataset = NEMDataset(n_batteries, train_episodes, test_episodes, price_col)
+    dataset = NEMDataset(n_batteries, train_episodes, test_episodes, price_buy_col)
     #print('mine dataset')
     #print(dataset.dataset)
     #print('self.episodes train: ', dataset.episodes['train'])

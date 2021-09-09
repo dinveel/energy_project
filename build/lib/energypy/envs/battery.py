@@ -80,7 +80,6 @@ class Battery(AbstractEnv):
         self.capacity = set_battery_config(capacity, n_batteries)
         self.efficiency = set_battery_config(efficiency, n_batteries)
         self.initial_charge = set_battery_config(initial_charge, n_batteries)
-        self.n_batteries = n_batteries
 
         self.episode_length = int(episode_length)
 
@@ -95,13 +94,13 @@ class Battery(AbstractEnv):
                 #### for nem-dataset
                 train_episodes='data/train/',
                 test_episodes= 'data/submit/',
-                price_col = 'price_buy_00'
+                price_buy_col = 'price_buy_00'
             )
             print(self.dataset.dataset)
         else:
             self.dataset = dataset
 
-        self.observation_space = BatteryObservationSpace(self.dataset, additional_features=0)
+        self.observation_space = BatteryObservationSpace(self.dataset, additional_features=1)
         self.action_space = BatteryActionSpace(n_batteries)
 
         self.elements = (
@@ -207,7 +206,4 @@ if __name__ == '__main__':
 
     for _ in range(2):
         act = env.action_space.sample()
-        print('action: ', act)
         next_obs, reward, done, info = env.step(act)
-        print('next_obs: ', next_obs)
-        print('reward: ', reward)
