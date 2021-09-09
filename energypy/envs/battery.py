@@ -200,14 +200,10 @@ class Battery(AbstractEnv):
 
 
 if __name__ == '__main__':
-    print('Erwin PEPE')
     env = Battery()
 
     obs = env.reset()
 
     for _ in range(2):
         act = env.action_space.sample()
-        print('action: ', act)
         next_obs, reward, done, info = env.step(act)
-        print('next_obs: ', next_obs)
-        print('reward: ', reward)

@@ -109,9 +109,7 @@ class NEMDataset(AbstractDataset):
         logger=None
     ):  # FINE
         self.n_batteries = n_batteries
-        print('No problem')
         self.price_col = price_col
-        print('Problem HERE')
 
         train_episodes = load_episodes(train_episodes)
         self.episodes = {
