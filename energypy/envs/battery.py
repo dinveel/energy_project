@@ -200,7 +200,7 @@ class Battery(AbstractEnv):
 
 
 if __name__ == '__main__':
-
+    print('Erwin PEPE')
     env = Battery()
 
     obs = env.reset()
