@@ -200,7 +200,6 @@ class Battery(AbstractEnv):
 
 
 if __name__ == '__main__':
-    print('random_shit')
     env = Battery()
 
     obs = env.reset()
