@@ -31,7 +31,7 @@ def load_episodes(path):
             #  list of paths
             episodes = [Path(p) for p in path]
             print(f'loading {len(episodes)} from list')
-            csvs = [pd.read_csv(p, index_col=0) for p in tqdm(episodes) if p.suffix == '.csv']
+            csvs = [pd.read_csv(p, index_col=0, sep = ';') for p in tqdm(episodes) if p.suffix == '.csv']
             parquets = [pd.read_parquet(p) for p in tqdm(episodes) if p.suffix == '.parquet']
 
             eps = csvs + parquets
@@ -48,7 +48,7 @@ def load_episodes(path):
         episodes = [path, ]
 
     print(f'loading {len(episodes)} from {path.name}')
-    eps = [pd.read_csv(p, index_col=0) for p in tqdm(episodes)]
+    eps = [pd.read_csv(p, index_col=0, sep = ';') for p in tqdm(episodes)]
     print(f'loaded {len(episodes)} from {path.name}')
     return eps
 
@@ -85,9 +85,10 @@ class AbstractDataset(ABC):
 
 
 class RandomDataset(AbstractDataset):
-    def __init__(self, n=1000, n_features=3, n_batteries=1, logger=None):
+    def __init__(self, n=10, n_features=1, n_batteries=1, logger=None):
         self.dataset = self.make_random_dataset(n, n_features, n_batteries)
         self.test_done = True  #  no notion of test data for random data
+        self.n_number = n
         self.reset()
 
     def make_random_dataset(self, n, n_features, n_batteries):
@@ -104,9 +105,9 @@ class NEMDataset(AbstractDataset):
         n_batteries,
         train_episodes=None,
         test_episodes=None,
-        price_col='price [$/MWh]',
+        price_col='price_buy_00',
         logger=None
-    ):
+    ):  # FINE
         self.n_batteries = n_batteries
         self.price_col = price_col
 
@@ -117,7 +118,7 @@ class NEMDataset(AbstractDataset):
             'random': train_episodes,
             'test': load_episodes(test_episodes),
         }
-
+        print(train_episodes)
         #  want test episodes to be a multiple of the number of batteries
         episodes_before = len(self.episodes['test'])
         lim = round_nearest(len(self.episodes['test'][:]), self.n_batteries)
@@ -137,13 +138,15 @@ class NEMDataset(AbstractDataset):
         else:
             return self.reset_train()
 
-    def setup_test(self):
+    def setup_test(self):  # FINE
         #  called by energypy.main
         self.test_done = False
         self.test_episodes_idx = list(range(0, len(self.episodes['test'])))
         return self.test_done
 
-    def reset_train(self):
+    def reset_train(self):  # FINE
+                            # [[1.csv], [2.csv]] - picks (n_batts) files at the time
+                            # make dataset = {'prices':, 'features':} [from [...]]
         episodes = random.sample(self.episodes['train'], self.n_batteries)
 
         ds = defaultdict(list)
@@ -160,7 +163,9 @@ class NEMDataset(AbstractDataset):
         }
         return self.get_data(0)
 
-    def reset_test(self):
+    def reset_test(self):  # FINE
+                           # picks (n_batts) files, preparing datasets
+                           # when test_episodes = [] -> len = 0 -> test_done = True
         episodes = self.test_episodes_idx[:self.n_batteries]
         self.test_episodes_idx = self.test_episodes_idx[self.n_batteries:]
 
@@ -181,3 +186,24 @@ class NEMDataset(AbstractDataset):
             self.test_done = True
 
         return self.get_data(0)
+
+if __name__ == '__main__':
+    n_batteries = 1
+
+    # эти элементы для задания random-dataset
+    #n = 10
+    #n_features = 2
+    #dataset = RandomDataset(n, n_features, n_batteries)
+    #print(dataset.dataset)
+    
+    train_episodes = 'data/train/'
+    test_episodes= 'data/submit/'
+    price_buy_col = 'price_buy_00'
+
+    dataset = NEMDataset(n_batteries, train_episodes, test_episodes, price_buy_col)
+    #print('mine dataset')
+    #print(dataset.dataset)
+    #print('self.episodes train: ', dataset.episodes['train'])
+    #print('self.episodes test: ', dataset.episodes['test'])
+    #print('elements of prices: ', len(dataset.dataset['prices']))
+    #print('elements of features: ', len(dataset.dataset['features']))
