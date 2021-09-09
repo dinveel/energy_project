@@ -70,7 +70,7 @@ class Battery(AbstractEnv):
         capacity=4.0,
         efficiency=0.9,
         initial_charge=0.0,
-        episode_length=1,
+        episode_length=960,
         dataset={'name': 'nem-dataset'},
         #dataset={'name': 'random-dataset'},
         logger=None
