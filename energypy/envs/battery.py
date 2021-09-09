@@ -43,7 +43,7 @@ class BatteryObservationSpace:
 
 
 class BatteryActionSpace:
-    def __init__(self, n_batteries=2):
+    def __init__(self, n_batteries=1):
         self.n_batteries = n_batteries
         self.shape = (1, )
 
@@ -65,17 +65,17 @@ class Battery(AbstractEnv):
     """
     def __init__(
         self,
-        n_batteries=2,
+        n_batteries=1,
         power=2.0,
         capacity=4.0,
         efficiency=0.9,
         initial_charge=0.0,
-        episode_length=288,
-        dataset={'name': 'random-dataset'},
+        episode_length=1,
+        dataset={'name': 'nem-dataset'},
+        #dataset={'name': 'random-dataset'},
         logger=None
     ):
-        self.n_batteries = n_batteries
-
+      
         self.power = set_battery_config(power, n_batteries)
         self.capacity = set_battery_config(capacity, n_batteries)
         self.efficiency = set_battery_config(efficiency, n_batteries)
@@ -87,8 +87,16 @@ class Battery(AbstractEnv):
             self.dataset = registry.make(
                 **dataset,
                 logger=logger,
-                n_batteries=n_batteries
+                n_batteries=n_batteries,
+                #### for random-dataset
+                #n=10,
+                #n_features=1,
+                #### for nem-dataset
+                train_episodes='data/train/',
+                test_episodes= 'data/submit/',
+                price_buy_col = 'price_buy_00'
             )
+            print(self.dataset.dataset)
         else:
             self.dataset = dataset
 
@@ -103,6 +111,7 @@ class Battery(AbstractEnv):
             ('done', (1, ), 'bool')
         )
         self.Transition = namedtuple('Transition', [el[0] for el in self.elements])
+        print(self.Transition)
 
     def reset(self, mode='train'):
         self.cursor = 0
