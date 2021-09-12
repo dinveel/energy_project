@@ -48,8 +48,10 @@ class BatteryActionSpace:
         self.n_batteries = n_batteries
         self.shape = (1, )
 
-        self.low = -1
-        self.high = 1
+        #self.low = -1
+        #self.high = 1
+        self.low = -self.power  # 1/4 of capacity (according to metadata)
+        self.high = self.power
 
     def sample(self):
         return np.random.uniform(-1, 1, self.n_batteries).reshape(self.n_batteries, 1)
@@ -67,9 +69,9 @@ class Battery(AbstractEnv):
     def __init__(
         self,
         n_batteries=1,
-        power=2.0,
-        capacity=4.0,
-        efficiency=0.9,
+        power=0.0,
+        capacity=0.0,
+        efficiency=0.0,
         initial_charge=0.0,
         episode_length=96,
         dataset={'name': 'nem-dataset'},
@@ -140,7 +142,53 @@ class Battery(AbstractEnv):
         self.test_done = self.dataset.setup_test()
 
     def step(self, action):
-        action = action.reshape(self.n_batteries, 1)
+        action = action.reshape(self.n_batteries, 1)    # [-power;power] already in W
+
+        # ----------------
+        current_charge = self.charge
+
+        if action > 0:
+            proposed_energy = current_charge + action * self.efficiency
+        else:
+            proposed_energy = current_charge + action * (1. / self.efficiency)
+        
+        # clipping if got out of capacity limits
+        proposed_energy_clipped = np.clip(proposed_energy, 0.0, self.capacity)
+        delta_charge_power = proposed_energy_clipped - current_charge
+
+        # everything is 0.25 of an hour -> converting power from 1/4 to 1 hour (to check)
+        if delta_change_energy >= 0:
+            delta_charge_power = delta_charge_power / ((15. / 60.) * self.efficiency)
+        else:
+            delta_charge_power = delta_change_energy * self.efficiency / (15. / 60.)
+
+        actual_delta_charge_power = np.clip(delta_charge_power, -self.power, self.power)
+
+        if actual_delta_charge_power >= 0:
+            actual_delta_charge_energy = actual_delta_charge_power * (15. / 60.) * self.efficiency
+        else:
+            actual_delta_charge_energy = actual_delta_charge_power * (15. / 60.) / self.efficiency
+
+        losses = calculate_losses(actual_delta_charge_energy, self.efficiency)
+
+        net_energy = actual_delta_charge_energy + losses
+
+        import_energy = np.zeros_like(net_energy)
+        import_energy[net_energy > 0] = net_energy[net_energy > 0]
+
+        export_energy = np.zeros_like(net_energy)
+        export_energy[net_energy < 0] = np.abs(net_energy[net_energy < 0])
+
+        #  set charge for next timestep
+        self.charge = self.charge + actual_delta_charge_energy
+
+        #  check battery is working correctly
+        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses)
+
+        # ----------------
+
+
+        '''   Some old code (just in case of using)
 
         #  expect a scaled action here
         #  -1 = discharge max, 1 = charge max
@@ -181,6 +229,8 @@ class Battery(AbstractEnv):
         #  check battery is working correctly
         battery_energy_balance(initial_charge, final_charge, import_energy, export_energy, losses)
 
+        '''
+
         price = self.dataset.get_data(self.cursor)['prices'].reshape(self.n_batteries,  -1)
         price = np.array(price).reshape(self.n_batteries, 1)
         reward = export_energy * price - import_energy * price
@@ -206,13 +256,13 @@ if __name__ == '__main__':
     site_id = 1
     episode_length = 96
     metadata = metadata[metadata.index == site_id]
-    capacity = metadata['Battery_1_Capacity'][site_id]
-    power = metadata['Battery_1_Power'][site_id]
+
+    capacity = metadata['Battery_1_Capacity'][site_id] * 1000   # to W
+    power_limit = metadata['Battery_1_Power'][site_id] * 1000   # to W
     charge_efficiency = metadata['Battery_1_Charge_Efficiency'][site_id]
-    #discharge_efficiency = metadata['Battery_1_Discharge_Efficiency'][site_id]
 
     #env = Battery()
-    env = Battery(power = power, capacity = capacity, efficiency = charge_efficiency, episode_length = episode_length)
+    env = Battery(power = power_limit, capacity = capacity, efficiency = charge_efficiency, episode_length = episode_length)
 
     obs = env.reset()
 
