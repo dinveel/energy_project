@@ -1,5 +1,6 @@
 Makefile
 README.md
+energy_project_with_github_push.ipynb
 github_collab_push.ipynb
 requirements.txt
 setup.cfg
@@ -14,6 +15,7 @@ data/submit/1.csv
 data/submit/2.csv
 data/train/1.csv
 data/train/2.csv
+dist/energypy-0.3.0-py3.7.egg
 energypy/__init__.py
 energypy/checkpoint.py
 energypy/datasets.py

@@ -70,7 +70,7 @@ class Battery(AbstractEnv):
         capacity=4.0,
         efficiency=0.9,
         initial_charge=0.0,
-        episode_length=1,
+        episode_length=96,
         dataset={'name': 'nem-dataset'},
         #dataset={'name': 'random-dataset'},
         logger=None
@@ -80,6 +80,7 @@ class Battery(AbstractEnv):
         self.capacity = set_battery_config(capacity, n_batteries)
         self.efficiency = set_battery_config(efficiency, n_batteries)
         self.initial_charge = set_battery_config(initial_charge, n_batteries)
+        self.n_batteries = n_batteries
 
         self.episode_length = int(episode_length)
 
@@ -94,13 +95,13 @@ class Battery(AbstractEnv):
                 #### for nem-dataset
                 train_episodes='data/train/',
                 test_episodes= 'data/submit/',
-                price_buy_col = 'price_buy_00'
+                price_col = 'price_buy_00'
             )
             print(self.dataset.dataset)
         else:
             self.dataset = dataset
 
-        self.observation_space = BatteryObservationSpace(self.dataset, additional_features=1)
+        self.observation_space = BatteryObservationSpace(self.dataset, additional_features=0)
         self.action_space = BatteryActionSpace(n_batteries)
 
         self.elements = (
@@ -199,8 +200,17 @@ class Battery(AbstractEnv):
 
 
 if __name__ == '__main__':
+    metadata_path = '/content/energy_project/data/metadata.csv'
+    metadata = pd.read_csv(metadata_path, index_col=0, sep=";")
+    site_id = 1
+    metadata = metadata[metadata.index == site_id]
+    capacity = metadata['Battery_1_Capacity'][site_id]
+    power = metadata['Battery_1_Capacity'][site_id]
+    charge_efficiency = metadata['Battery_1_Charge_Efficiency'][site_id]
+    #discharge_efficiency = metadata['Battery_1_Discharge_Efficiency'][site_id]
 
-    env = Battery()
+    #env = Battery()
+    env = Battery(power = power, capacity = capacity, efficiency = charge_efficiency)
 
     obs = env.reset()
 

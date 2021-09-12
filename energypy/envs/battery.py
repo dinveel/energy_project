@@ -1,5 +1,6 @@
 from collections import namedtuple
 import numpy as np
+import pandas as pd
 
 from energypy import registry
 from energypy.envs.base import AbstractEnv
@@ -70,7 +71,7 @@ class Battery(AbstractEnv):
         capacity=4.0,
         efficiency=0.9,
         initial_charge=0.0,
-        episode_length=960,
+        episode_length=96,
         dataset={'name': 'nem-dataset'},
         #dataset={'name': 'random-dataset'},
         logger=None
@@ -200,7 +201,20 @@ class Battery(AbstractEnv):
 
 
 if __name__ == '__main__':
-    env = Battery()
+    metadata_path = '/content/energy_project/data/metadata.csv'
+    metadata = pd.read_csv(metadata_path, index_col=0, sep=";")
+    site_id = 1
+    metadata = metadata[metadata.index == site_id]
+    capacity = metadata['Battery_1_Capacity'][site_id]
+    power = metadata['Battery_1_Power'][site_id]
+    charge_efficiency = metadata['Battery_1_Charge_Efficiency'][site_id]
+    #discharge_efficiency = metadata['Battery_1_Discharge_Efficiency'][site_id]
+
+    #env = Battery()
+    env = Battery(power = power, capacity = capacity, efficiency = charge_efficiency)
+    print('Hola boys ---------------------')
+    print(env.power, env.capacity, env.efficiency)
+    print('Hola boys ---------------------')
 
     obs = env.reset()
 
