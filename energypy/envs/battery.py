@@ -6,9 +6,9 @@ from energypy import registry
 from energypy.envs.base import AbstractEnv
 
 
-def battery_energy_balance(initial_charge, final_charge, import_energy, export_energy, losses):
+def battery_energy_balance(initial_charge, final_charge, import_energy, export_energy, losses, pv_output):
     delta_charge = final_charge - initial_charge
-    balance = import_energy - (export_energy + losses + delta_charge)
+    balance = import_energy - (export_energy + losses + delta_charge) + pv_output 
     np.testing.assert_almost_equal(balance, 0)
 
 
@@ -183,7 +183,7 @@ class Battery(AbstractEnv):
         self.charge = self.charge + actual_delta_charge_energy
 
         #  check battery is working correctly
-        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses)
+        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses, pv_output)
 
         # ----------------
 
