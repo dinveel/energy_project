@@ -21,7 +21,7 @@ def make_perfect_forecast(prices, horizon):
     return forecast[:-(horizon-1), :]
 
 
-def load_episodes(path):
+def load_episodes(path):  # data is like [dataFrame_1, dataFrame_2, ...]
     #  pass in list of filepaths
     if isinstance(path, list):
         if isinstance(path[0], pd.DataFrame):
@@ -112,13 +112,15 @@ class NEMDataset(AbstractDataset):
         self.price_col = price_col
 
         train_episodes = load_episodes(train_episodes)
+        test_episodes = load_episodes(test_episodes)
         self.episodes = {
             'train': train_episodes,
             #  our random sampling done on train episodes
             'random': train_episodes,
             'test': load_episodes(test_episodes),
         }
-        print(train_episodes)
+        #print('Cawabanga __', train_episodes)
+        #print('Cawabanga __', test_episodes[0]['pv_00'])
         #  want test episodes to be a multiple of the number of batteries
         episodes_before = len(self.episodes['test'])
         lim = round_nearest(len(self.episodes['test'][:]), self.n_batteries)
@@ -201,6 +203,10 @@ if __name__ == '__main__':
     price_col = 'price_buy_00'
 
     dataset = NEMDataset(n_batteries, train_episodes, test_episodes, price_col)
+    print('-------------')
+    print('-------------')
+    print(dataset.dataset.items())
+    print('-------------')
     #print('mine dataset')
     #print(dataset.dataset)
     #print('self.episodes train: ', dataset.episodes['train'])

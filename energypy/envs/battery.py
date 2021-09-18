@@ -44,14 +44,14 @@ class BatteryObservationSpace:
 
 
 class BatteryActionSpace:
-    def __init__(self, n_batteries=1):
+    def __init__(self, n_batteries=1, power=0):
         self.n_batteries = n_batteries
         self.shape = (1, )
 
         #self.low = -1
         #self.high = 1
-        self.low = -self.power  # 1/4 of capacity (according to metadata)
-        self.high = self.power
+        self.low = -power  # 1/4 of capacity (according to metadata)
+        self.high = power
 
     def sample(self):
         return np.random.uniform(-1, 1, self.n_batteries).reshape(self.n_batteries, 1)
@@ -105,7 +105,7 @@ class Battery(AbstractEnv):
             self.dataset = dataset
 
         self.observation_space = BatteryObservationSpace(self.dataset, additional_features=0)
-        self.action_space = BatteryActionSpace(n_batteries)
+        self.action_space = BatteryActionSpace(n_batteries, self.power)
 
         self.elements = (
             ('observation', self.observation_space.shape, 'float32'),
@@ -263,9 +263,14 @@ if __name__ == '__main__':
 
     #env = Battery()
     env = Battery(power = power_limit, capacity = capacity, efficiency = charge_efficiency, episode_length = episode_length)
+    #data = env.dataset.get_data(0)
+    print(env.dataset.dataset)
 
+    '''
     obs = env.reset()
 
     for _ in range(2):
         act = env.action_space.sample()
         next_obs, reward, done, info = env.step(act)
+
+    '''

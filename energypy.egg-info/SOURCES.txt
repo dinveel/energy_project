@@ -11,6 +11,7 @@ benchmarks/lunar.json
 benchmarks/nem-battery.json
 benchmarks/pendulum.json
 benchmarks/random-battery.json
+data/metadata.csv
 data/submit/1.csv
 data/submit/2.csv
 data/train/1.csv
