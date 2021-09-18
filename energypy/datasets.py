@@ -149,8 +149,7 @@ class NEMDataset(AbstractDataset):
     def reset_train(self):  # FINE
                             # [[1.csv], [2.csv]] - picks (n_batts) files at the time
                             # make dataset = {'prices':, 'features':} [from [...]]
-        episodes = random.sample(self.episodes['train'], self.n_batteries)
-
+        episodes = random.sample(self.episodes['train'], self.n_batteries)  # taking random csv
         ds = defaultdict(list)
         for episode in episodes:
             episode = episode.copy()

@@ -100,7 +100,6 @@ class Battery(AbstractEnv):
                 test_episodes= 'data/submit/',
                 price_col = 'price_buy_00'
             )
-            print(self.dataset.dataset)
         else:
             self.dataset = dataset
 
@@ -121,7 +120,7 @@ class Battery(AbstractEnv):
         self.cursor = 0
         self.charge = self.get_initial_charge()
 
-        self.dataset.reset(mode)
+        self.dataset.reset(mode)   # sets self.cursor = 0
         self.test_done = self.dataset.test_done
         return self.get_observation()
 
@@ -134,8 +133,9 @@ class Battery(AbstractEnv):
         return initial.reshape(self.n_batteries, 1)
 
     def get_observation(self):
-        data = self.dataset.get_data(self.cursor)
+        data = self.dataset.get_data(self.cursor) # gives get_data(cursor) [1 row of data]
         features = data['features'].reshape(self.n_batteries, -1)
+        self.pv_output = features[0][-1]
         return np.concatenate([features, self.charge], axis=1)
 
     def setup_test(self):
@@ -264,11 +264,12 @@ if __name__ == '__main__':
     #env = Battery()
     env = Battery(power = power_limit, capacity = capacity, efficiency = charge_efficiency, episode_length = episode_length)
     #data = env.dataset.get_data(0)
-    print(env.dataset.dataset)
+    #print(env.dataset.dataset)  # the dataset is for 'train' (because of the deafult train mode and reset() thing in datasets.py which sets it like that)
 
-    '''
+    
     obs = env.reset()
 
+    '''
     for _ in range(2):
         act = env.action_space.sample()
         next_obs, reward, done, info = env.step(act)
