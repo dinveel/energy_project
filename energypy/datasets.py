@@ -155,9 +155,8 @@ class NEMDataset(AbstractDataset):
         for episode in episodes:
             episode = episode.copy()
             prices = episode.pop(self.price_col)
-            ds['prices'].append(prices.reset_index(drop=True).values.reshape(-1, 1, 1))
+            ds['prices'].append(prices.reset_index(drop=True).values.reshape(prices.shape[0], 1, 1))
             ds['features'].append(episode.reset_index(drop=True).values.reshape(prices.shape[0], 1, -1))
-
         #  TODO could call this episode
         self.dataset = {
             'prices': np.concatenate(ds['prices'], axis=1),
@@ -202,10 +201,13 @@ if __name__ == '__main__':
     test_episodes= 'data/submit/'
     price_col = 'price_buy_00'
 
-    dataset = NEMDataset(n_batteries, train_episodes, test_episodes, price_col)
+    dataset = NEMDataset(n_batteries, train_episodes, test_episodes, price_col) 
+    # the dataset is from reset() -> mode=train -> train_dataset (1 of them)
+
     print('-------------')
     print('-------------')
-    print(dataset.dataset.items())
+    print(dataset.dataset)
+    #print(dataset.get_data(0))
     print('-------------')
     #print('mine dataset')
     #print(dataset.dataset)
