@@ -136,6 +136,7 @@ class NEMDataset(AbstractDataset):
 
     def reset(self, mode='train'):
         if mode == 'test':
+            self.setup_test()     # сам добавил
             return self.reset_test()
         else:
             return self.reset_train()
@@ -166,13 +167,16 @@ class NEMDataset(AbstractDataset):
     def reset_test(self):  # FINE
                            # picks (n_batts) files, preparing datasets
                            # when test_episodes = [] -> len = 0 -> test_done = True
+
+        #episodes = random.sample(self.episodes['test'], self.n_batteries)
         episodes = self.test_episodes_idx[:self.n_batteries]
         self.test_episodes_idx = self.test_episodes_idx[self.n_batteries:]
 
         ds = defaultdict(list)
         for episode in episodes:
             episode = self.episodes['test'][episode].copy()
-            prices = episode.pop(self.price_buy_col)
+            #episode = episode.copy()
+            prices = episode.pop(self.price_col)
             ds['prices'].append(prices.reset_index(drop=True))
             ds['features'].append(episode.reset_index(drop=True))
 
