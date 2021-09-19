@@ -136,6 +136,8 @@ class Battery(AbstractEnv):
         data = self.dataset.get_data(self.cursor) # gives get_data(cursor) [1 row of data]
         features = data['features'].reshape(self.n_batteries, -1)
         self.pv_output = features[0][-1]
+        self.actual_consumption = [0][2]
+        self.actual_pv = [0][3]
         return np.concatenate([features, self.charge], axis=1)
 
     def setup_test(self):
@@ -171,7 +173,8 @@ class Battery(AbstractEnv):
 
         losses = calculate_losses(actual_delta_charge_energy, self.efficiency)
 
-        net_energy = actual_delta_charge_energy + losses
+        #net_energy = actual_delta_charge_energy + losses
+        net_energy = actual_delta_charge_power * (15. / 60.) + actual_
 
         import_energy = np.zeros_like(net_energy)
         import_energy[net_energy > 0] = net_energy[net_energy > 0]
@@ -183,7 +186,7 @@ class Battery(AbstractEnv):
         self.charge = self.charge + actual_delta_charge_energy
 
         #  check battery is working correctly
-        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses, pv_output)
+        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses, self.pv_output)
 
         # ----------------
 

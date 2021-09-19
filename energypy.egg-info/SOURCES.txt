@@ -13,9 +13,7 @@ benchmarks/pendulum.json
 benchmarks/random-battery.json
 data/metadata.csv
 data/submit/1.csv
-data/submit/2.csv
 data/train/1.csv
-data/train/2.csv
 dist/energypy-0.3.0-py3.7.egg
 energypy/__init__.py
 energypy/checkpoint.py
