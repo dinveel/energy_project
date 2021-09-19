@@ -174,7 +174,7 @@ class Battery(AbstractEnv):
         losses = calculate_losses(actual_delta_charge_energy, self.efficiency)
 
         #net_energy = actual_delta_charge_energy + losses
-        net_energy = actual_delta_charge_power * (15. / 60.) + actual_
+        net_energy = (actual_delta_charge_power * (15. / 60.) + self.actual_consumption) - self.actual_pv
 
         import_energy = np.zeros_like(net_energy)
         import_energy[net_energy > 0] = net_energy[net_energy > 0]
@@ -270,7 +270,7 @@ if __name__ == '__main__':
     #print(env.dataset.dataset)  # the dataset is for 'train' (because of the deafult train mode and reset() thing in datasets.py which sets it like that)
 
     
-    obs = env.reset()
+    obs = env.reset()     # reset() gives 1st row from dataset
 
     '''
     for _ in range(2):
