@@ -136,8 +136,8 @@ class Battery(AbstractEnv):
         data = self.dataset.get_data(self.cursor) # gives get_data(cursor) [1 row of data]
         features = data['features'].reshape(self.n_batteries, -1)
         self.pv_output = features[0][-1]
-        self.actual_consumption = [0][2]
-        self.actual_pv = [0][3]
+        self.actual_consumption = features[0][2]
+        self.actual_pv = features[0][3]
         return np.concatenate([features, self.charge], axis=1)
 
     def setup_test(self):
