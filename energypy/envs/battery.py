@@ -196,13 +196,19 @@ class Battery(AbstractEnv):
         #  check battery is working correctly
         battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses, self.actual_pv, self.actual_consumption)
 
-        # ----------------
-
+        # formulating prices to calculate a reward 
         price_buy = self.dataset.get_data(self.cursor)['prices'].reshape(self.n_batteries,  -1)
-        price = np.array(price).reshape(self.n_batteries, 1)
+        price_buy = np.array(price_buy).reshape(self.n_batteries, 1)
 
-        # got something to consider
-        reward = export_energy * price - import_energy * price
+        price = price_buy if net_energy >= 0 else self.price_sell
+        grid_energy_without_battery = self.actual_consumption - self.actual_pv
+        price_without_battery = price_buy if grid_energy_without_battery >= 0 else self.price_sell
+
+        money_spent_without_battery = grid_energy_without_battery * (price_without_battery / 1000.)
+        money_spent = net_energy * (price / 1000.)
+
+        reward = (money_spent_without_battery - money_spent) / (money_spent_without_battery)
+        #reward = export_energy * price_sell - import_energy * price_buy
 
         self.cursor += 1
         done = np.array(self.cursor == (self.episode_length))
@@ -238,9 +244,9 @@ if __name__ == '__main__':
     
     obs = env.reset()     # reset() gives 1st row from dataset
 
-    '''
+    
     for _ in range(2):
         act = env.action_space.sample()
         next_obs, reward, done, info = env.step(act)
 
-    '''
+    
