@@ -244,7 +244,11 @@ if __name__ == '__main__':
     
     obs = env.reset()     # reset() gives 1st row from dataset
 
-    
+    # Отлаживание:
+    #   проверить правильность изъятия атрибутов price_buy, price_sell и т.п.
+    #   проверить правильность формирования награды (правильно ли ввел все переменные и считаю)
+    #   подумать о сбрасывании reward (и формировании кумулятивной награды в виде атрибута класса)
+
     for _ in range(2):
         act = env.action_space.sample()
         next_obs, reward, done, info = env.step(act)
