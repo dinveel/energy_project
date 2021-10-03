@@ -6,9 +6,9 @@ from energypy import registry
 from energypy.envs.base import AbstractEnv
 
 
-def battery_energy_balance(initial_charge, final_charge, import_energy, export_energy, losses, pv_output):
+def battery_energy_balance(initial_charge, final_charge, import_energy, export_energy, losses, pv_output, consumption):
     delta_charge = final_charge - initial_charge
-    balance = import_energy - (export_energy + losses + delta_charge) + pv_output 
+    balance = import_energy - (export_energy + losses + delta_charge) + pv_output - consumption
     np.testing.assert_almost_equal(balance, 0)
 
 
@@ -16,11 +16,16 @@ def calculate_losses(delta_charge, efficiency):
     #  delta_charge = battery delta_charge charge
     delta_charge = np.array(delta_charge)
     efficiency = np.array(efficiency)
+
+    losses = np.zeros_like(delta_charge)
+    losses[delta_charge > 0] = delta_charge[delta_charge > 0] * (1 - efficiency) * (15. / 60.)
+    losses[delta_charge < 0] = delta_charge[delta_charge < 0] * (1/efficiency - 1) * (15. / 60.)
+
     #  account for losses / the round trip efficiency
     #  we lose electricity when we discharge
-    losses = delta_charge * (1 - efficiency)
-    losses = np.array(losses)
-    losses[delta_charge > 0] = 0
+    #losses = delta_charge * (1 - efficiency)
+    #losses = np.array(losses)
+    #losses[delta_charge > 0] = 0
 
     if (np.isnan(losses)).any():
         losses = np.zeros_like(losses)
@@ -171,7 +176,7 @@ class Battery(AbstractEnv):
         else:
             actual_delta_charge_energy = actual_delta_charge_power * (15. / 60.) / self.efficiency
 
-        losses = calculate_losses(actual_delta_charge_energy, self.efficiency)
+        losses = calculate_losses(actual_delta_charge_power, self.efficiency)
 
         #net_energy = actual_delta_charge_energy + losses
         net_energy = (actual_delta_charge_power * (15. / 60.) + self.actual_consumption) - self.actual_pv
@@ -183,10 +188,10 @@ class Battery(AbstractEnv):
         export_energy[net_energy < 0] = np.abs(net_energy[net_energy < 0])
 
         #  set charge for next timestep
-        self.charge = self.charge + actual_delta_charge_energy
+        self.charge = current_charge + actual_delta_charge_energy
 
         #  check battery is working correctly
-        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses, self.pv_output)
+        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses, self.pv_output, self.actual_consumption)
 
         # ----------------
 
