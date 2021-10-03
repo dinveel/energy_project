@@ -18,8 +18,8 @@ def calculate_losses(delta_charge, efficiency):
     efficiency = np.array(efficiency)
 
     losses = np.zeros_like(delta_charge)
-    losses[delta_charge > 0] = delta_charge[delta_charge > 0] * (1. - efficiency) * (15. / 60.)
-    losses[delta_charge < 0] = delta_charge[delta_charge < 0] * ((1./efficiency) - 1) * (15. / 60.)
+    losses[delta_charge > 0] = delta_charge[delta_charge > 0] * (1. - efficiency[delta_charge > 0]) * (15. / 60.)
+    losses[delta_charge < 0] = delta_charge[delta_charge < 0] * ((1./efficiency[delta_charge < 0]) - 1) * (15. / 60.)
 
     #  account for losses / the round trip efficiency
     #  we lose electricity when we discharge
@@ -165,10 +165,10 @@ class Battery(AbstractEnv):
         delta_charge_power = proposed_energy_clipped - current_charge
 
         # everything is 0.25 of an hour -> converting power from 1/4 to 1 hour (to check 'power limits')
-        if delta_change_energy >= 0:
+        if delta_charge_power >= 0:
             delta_charge_power = delta_charge_power / ((15. / 60.) * self.efficiency)
         else:
-            delta_charge_power = delta_change_energy * self.efficiency / (15. / 60.)
+            delta_charge_power = delta_charge_power * self.efficiency / (15. / 60.)
 
         # in hour 
         actual_delta_charge_power = np.clip(delta_charge_power, -self.power, self.power)
@@ -248,5 +248,12 @@ if __name__ == '__main__':
     for _ in range(2):
         act = env.action_space.sample()
         next_obs, reward, done, info = env.step(act)
+        print('Agent took action =', act)
+        print('After step he got:')
+        print('next_obs = ', next_obs)
+        print('reward = ', reward)
+        print('done = ', done)
+        print('info = ', info)
+        print('-------------------------')
 
     
