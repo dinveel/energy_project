@@ -18,8 +18,8 @@ def calculate_losses(delta_charge, efficiency):
     efficiency = np.array(efficiency)
 
     losses = np.zeros_like(delta_charge)
-    losses[delta_charge > 0] = delta_charge[delta_charge > 0] * (1 - efficiency) * (15. / 60.)
-    losses[delta_charge < 0] = delta_charge[delta_charge < 0] * (1/efficiency - 1) * (15. / 60.)
+    losses[delta_charge > 0] = delta_charge[delta_charge > 0] * (1. - efficiency) * (15. / 60.)
+    losses[delta_charge < 0] = delta_charge[delta_charge < 0] * ((1./efficiency) - 1) * (15. / 60.)
 
     #  account for losses / the round trip efficiency
     #  we lose electricity when we discharge
@@ -140,9 +140,11 @@ class Battery(AbstractEnv):
     def get_observation(self):
         data = self.dataset.get_data(self.cursor) # gives get_data(cursor) [1 row of data]
         features = data['features'].reshape(self.n_batteries, -1)
+        self.price_sell = features[0][0]
+        self.actual_consumption = features[0][1]
+        self.actual_pv = features[0][2]
+        self.load_output = features[0][3]
         self.pv_output = features[0][-1]
-        self.actual_consumption = features[0][2]
-        self.actual_pv = features[0][3]
         return np.concatenate([features, self.charge], axis=1)
 
     def setup_test(self):
@@ -151,7 +153,6 @@ class Battery(AbstractEnv):
     def step(self, action):
         action = action.reshape(self.n_batteries, 1)    # [-power;power] already in W
 
-        # ----------------
         current_charge = self.charge
 
         if action > 0:
@@ -159,26 +160,28 @@ class Battery(AbstractEnv):
         else:
             proposed_energy = current_charge + action * (1. / self.efficiency)
         
-        # clipping if got out of capacity limits
+        # clipping (checking 'capacity limits')
         proposed_energy_clipped = np.clip(proposed_energy, 0.0, self.capacity)
         delta_charge_power = proposed_energy_clipped - current_charge
 
-        # everything is 0.25 of an hour -> converting power from 1/4 to 1 hour (to check)
+        # everything is 0.25 of an hour -> converting power from 1/4 to 1 hour (to check 'power limits')
         if delta_change_energy >= 0:
             delta_charge_power = delta_charge_power / ((15. / 60.) * self.efficiency)
         else:
             delta_charge_power = delta_change_energy * self.efficiency / (15. / 60.)
 
+        # in hour 
         actual_delta_charge_power = np.clip(delta_charge_power, -self.power, self.power)
 
+        # going back to 0.25 of an hour (with efficiency consideration)
         if actual_delta_charge_power >= 0:
             actual_delta_charge_energy = actual_delta_charge_power * (15. / 60.) * self.efficiency
         else:
             actual_delta_charge_energy = actual_delta_charge_power * (15. / 60.) / self.efficiency
 
+        # just for balance() function
         losses = calculate_losses(actual_delta_charge_power, self.efficiency)
 
-        #net_energy = actual_delta_charge_energy + losses
         net_energy = (actual_delta_charge_power * (15. / 60.) + self.actual_consumption) - self.actual_pv
 
         import_energy = np.zeros_like(net_energy)
@@ -195,52 +198,10 @@ class Battery(AbstractEnv):
 
         # ----------------
 
-
-        '''   Some old code (just in case of using)
-
-        #  expect a scaled action here
-        #  -1 = discharge max, 1 = charge max
-        action = np.clip(action, -1, 1)
-        action = action * self.power
-
-        #  convert from power to energy, kW -> kWh
-        action = action / 2
-
-        #  charge at the start of the interval, kWh
-        initial_charge = self.charge
-
-        #  charge at end of the interval
-        #  clipped at battery capacity, kWh
-        final_charge = np.clip(initial_charge + action, 0, self.capacity)
-
-        #  accumulation in battery, kWh
-        #  delta_charge can also be thought of as gross_power
-        delta_charge = final_charge - initial_charge
-
-        #  losses are applied when we discharge, kWh
-        losses = calculate_losses(delta_charge, self.efficiency)
-
-        #  net of losses, kWh
-        #  add losses here because in delta_charge, export is negative
-        #  to reduce export, we add a positive losses
-        net_energy = delta_charge + losses
-
-        import_energy = np.zeros_like(net_energy)
-        import_energy[net_energy > 0] = net_energy[net_energy > 0]
-
-        export_energy = np.zeros_like(net_energy)
-        export_energy[net_energy < 0] = np.abs(net_energy[net_energy < 0])
-
-        #  set charge for next timestep
-        self.charge = initial_charge + delta_charge
-
-        #  check battery is working correctly
-        battery_energy_balance(initial_charge, final_charge, import_energy, export_energy, losses)
-
-        '''
-
-        price = self.dataset.get_data(self.cursor)['prices'].reshape(self.n_batteries,  -1)
+        price_buy = self.dataset.get_data(self.cursor)['prices'].reshape(self.n_batteries,  -1)
         price = np.array(price).reshape(self.n_batteries, 1)
+
+        # got something to consider
         reward = export_energy * price - import_energy * price
 
         self.cursor += 1
