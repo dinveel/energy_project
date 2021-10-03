@@ -141,10 +141,10 @@ class Battery(AbstractEnv):
         data = self.dataset.get_data(self.cursor) # gives get_data(cursor) [1 row of data]
         features = data['features'].reshape(self.n_batteries, -1)
         self.price_sell = features[0][0]
-        self.actual_consumption = features[0][1]
-        self.actual_pv = features[0][2]
-        self.load_output = features[0][3]
-        self.pv_output = features[0][-1]
+        self.actual_consumption = features[0][1] # actual используется после того как Agent выполнил Action для подсчета net_energy (buy/sell) и money_batt/no_batt
+        self.actual_pv = features[0][2]     
+        self.load_output = features[0][3]   # пока не знаю для чего нужны столбцы (идей нету, прогнозные значения просто)
+        self.pv_output = features[0][-1]    # в MILP нужны были поскольку по ним задачу строили лин. программирования (не могли использовать actual)
         return np.concatenate([features, self.charge], axis=1)
 
     def setup_test(self):
@@ -194,7 +194,7 @@ class Battery(AbstractEnv):
         self.charge = current_charge + actual_delta_charge_energy
 
         #  check battery is working correctly
-        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses, self.pv_output, self.actual_consumption)
+        battery_energy_balance(current_charge, self.charge, import_energy, export_energy, losses, self.actual_pv, self.actual_consumption)
 
         # ----------------
 
