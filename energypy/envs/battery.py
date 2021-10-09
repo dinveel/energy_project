@@ -80,7 +80,6 @@ class Battery(AbstractEnv):
         initial_charge=0.0,
         episode_length=96,
         dataset={'name': 'nem-dataset'},
-        #dataset={'name': 'random-dataset'},
         logger=None
     ):
       
@@ -108,7 +107,8 @@ class Battery(AbstractEnv):
         else:
             self.dataset = dataset
 
-        self.observation_space = BatteryObservationSpace(self.dataset, additional_features=0)
+        self.observation_space = BatteryObservationSpace(self.dataset, additional_features=1)
+        # additional_features = 1 (иначе не добавляет price_buy в размерность observation_space)
         self.action_space = BatteryActionSpace(n_batteries, self.power)
 
         self.elements = (
@@ -118,8 +118,12 @@ class Battery(AbstractEnv):
             ('next_observation', self.observation_space.shape, 'float32'),
             ('done', (1, ), 'bool')
         )
+        print('-------------------')
+        for el in self.elements:
+          print(el)
+        print('-------------------')
         self.Transition = namedtuple('Transition', [el[0] for el in self.elements])
-        print(self.Transition)
+        #print(self.Transition)
 
     def reset(self, mode='train'):
         self.cursor = 0

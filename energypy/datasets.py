@@ -112,15 +112,24 @@ class NEMDataset(AbstractDataset):
         self.price_col = price_col
 
         train_episodes = load_episodes(train_episodes)
+        print('------')
+        print('loaded train episodes')
+        print('------')
+        print('')
+
         test_episodes = load_episodes(test_episodes)
+        print('------')
+        print('loaded test episodes')
+        print('------')
+        print('')
+
         self.episodes = {
             'train': train_episodes,
             #  our random sampling done on train episodes
             'random': train_episodes,
             'test': load_episodes(test_episodes),
         }
-        #print('Cawabanga __', train_episodes)
-        #print('Cawabanga __', test_episodes[0]['pv_00'])
+
         #  want test episodes to be a multiple of the number of batteries
         episodes_before = len(self.episodes['test'])
         lim = round_nearest(len(self.episodes['test'][:]), self.n_batteries)

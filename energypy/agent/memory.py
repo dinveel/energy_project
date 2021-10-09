@@ -35,6 +35,13 @@ def load(path):
     with path.open('rb') as fi:
         return pickle.load(fi)
 
+#Buffer(self.elemnts, 38400) # 38400 наблюдений в .csv
+#el:   ('observation', (5,), 'float32')
+#      ('action', (1,), 'float32')
+#      ('reward', (1,), 'float32')
+#      ('next_observation', (5,), 'float32')
+#      ('done', (1,), 'bool')
+#('observation', (5,), 'float32'): ()
 
 class Buffer():
     def __init__(self, elements, size=64):
@@ -44,7 +51,7 @@ class Buffer():
         }
         self.size = size
         self.cursor = 0
-        self.full = False
+        self.full = False     # т.к. только создан -> буффер пустой (из 0й)
 
     def __len__(self):
         return len(self.data['observation'])

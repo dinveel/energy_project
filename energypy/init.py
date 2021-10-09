@@ -1,5 +1,6 @@
 from collections import defaultdict
 import tensorflow as tf
+import pandas as pd
 
 from energypy import utils, memory, policy, qfunc, alpha, registry
 
@@ -46,12 +47,39 @@ def init_fresh(hyp):
     paths = utils.get_paths(hyp)
     transition_logger = utils.make_logger('transitions.data', paths['run'])
 
+    metadata_path = '/content/energy_project/data/metadata.csv'
+    metadata = pd.read_csv(metadata_path, index_col=0, sep=";")
+    site_id = 1
+    metadata = metadata[metadata.index == site_id]
+    capacity = metadata['Battery_1_Capacity'][site_id] * 1000   # to W
+    power_limit = metadata['Battery_1_Power'][site_id] * 1000   # to W
+    charge_efficiency = metadata['Battery_1_Charge_Efficiency'][site_id]
+
+    hyp['env']['capacity'] = capacity
+    hyp['env']['power'] = power_limit
+    hyp['env']['efficiency'] = charge_efficiency
+
     env = registry.make(**hyp['env'], logger=transition_logger)
+    print('------')
+    print('env created')
+    print('------')
+    print('')
+
     buffer = memory.make(env, hyp)
+    print('------')
+    print('buffer created')
+    print('------')
+    print('')
+    # Буффер создает копию файла (buffer_size x observation_space_size) забитую 0ми (np.array)
+    # он пока пустой
 
     nets = init_nets(env, hyp)
     writers = init_writers(counters, paths)
     optimizers = init_optimizers(hyp)
+    print('------')
+    print('nets, writers, optimizers created')
+    print('------')
+    print('')
 
     target_entropy = nets.pop('target_entropy')
     hyp['target-entropy'] = target_entropy

@@ -21,7 +21,7 @@ def make_perfect_forecast(prices, horizon):
     return forecast[:-(horizon-1), :]
 
 
-def load_episodes(path):
+def load_episodes(path):  # data is like [dataFrame_1, dataFrame_2, ...]
     #  pass in list of filepaths
     if isinstance(path, list):
         if isinstance(path[0], pd.DataFrame):
@@ -112,13 +112,24 @@ class NEMDataset(AbstractDataset):
         self.price_col = price_col
 
         train_episodes = load_episodes(train_episodes)
+        print('------')
+        print('loaded train episodes')
+        print('------')
+        print('')
+
+        test_episodes = load_episodes(test_episodes)
+        print('------')
+        print('loaded test episodes')
+        print('------')
+        print('')
+
         self.episodes = {
             'train': train_episodes,
             #  our random sampling done on train episodes
             'random': train_episodes,
             'test': load_episodes(test_episodes),
         }
-        print(train_episodes)
+
         #  want test episodes to be a multiple of the number of batteries
         episodes_before = len(self.episodes['test'])
         lim = round_nearest(len(self.episodes['test'][:]), self.n_batteries)
@@ -134,6 +145,7 @@ class NEMDataset(AbstractDataset):
 
     def reset(self, mode='train'):
         if mode == 'test':
+            self.setup_test()     # сам добавил
             return self.reset_test()
         else:
             return self.reset_train()
@@ -147,15 +159,13 @@ class NEMDataset(AbstractDataset):
     def reset_train(self):  # FINE
                             # [[1.csv], [2.csv]] - picks (n_batts) files at the time
                             # make dataset = {'prices':, 'features':} [from [...]]
-        episodes = random.sample(self.episodes['train'], self.n_batteries)
-
+        episodes = random.sample(self.episodes['train'], self.n_batteries)  # taking random csv
         ds = defaultdict(list)
         for episode in episodes:
             episode = episode.copy()
             prices = episode.pop(self.price_col)
-            ds['prices'].append(prices.reset_index(drop=True).values.reshape(-1, 1, 1))
+            ds['prices'].append(prices.reset_index(drop=True).values.reshape(prices.shape[0], 1, 1))
             ds['features'].append(episode.reset_index(drop=True).values.reshape(prices.shape[0], 1, -1))
-
         #  TODO could call this episode
         self.dataset = {
             'prices': np.concatenate(ds['prices'], axis=1),
@@ -166,12 +176,15 @@ class NEMDataset(AbstractDataset):
     def reset_test(self):  # FINE
                            # picks (n_batts) files, preparing datasets
                            # when test_episodes = [] -> len = 0 -> test_done = True
+
+        #episodes = random.sample(self.episodes['test'], self.n_batteries)
         episodes = self.test_episodes_idx[:self.n_batteries]
         self.test_episodes_idx = self.test_episodes_idx[self.n_batteries:]
 
         ds = defaultdict(list)
         for episode in episodes:
             episode = self.episodes['test'][episode].copy()
+            #episode = episode.copy()
             prices = episode.pop(self.price_col)
             ds['prices'].append(prices.reset_index(drop=True))
             ds['features'].append(episode.reset_index(drop=True))
@@ -198,9 +211,16 @@ if __name__ == '__main__':
     
     train_episodes = 'data/train/'
     test_episodes= 'data/submit/'
-    price_buy_col = 'price_buy_00'
+    price_col = 'price_buy_00'
 
-    dataset = NEMDataset(n_batteries, train_episodes, test_episodes, price_buy_col)
+    dataset = NEMDataset(n_batteries, train_episodes, test_episodes, price_col) 
+    # the dataset is from reset() -> mode=train -> train_dataset (1 of them)
+
+    print('-------------')
+    print('-------------')
+    print(dataset.dataset)
+    #print(dataset.get_data(0))
+    print('-------------')
     #print('mine dataset')
     #print(dataset.dataset)
     #print('self.episodes train: ', dataset.episodes['train'])

@@ -135,6 +135,7 @@ def cli(experiment_json, run_name, buffer, seed, checkpoint_path):
     print('cli')
     print('------')
     print(experiment_json, run_name, buffer)
+    print('------')
     print('')
 
     hyp = json_util.load(experiment_json)
@@ -146,6 +147,7 @@ def cli(experiment_json, run_name, buffer, seed, checkpoint_path):
     print('params')
     print('------')
     print(hyp)
+    print('------')
     print('')
     sleep(2)
 
