@@ -55,9 +55,9 @@ def init_fresh(hyp):
     power_limit = metadata['Battery_1_Power'][site_id] * 1000   # to W
     charge_efficiency = metadata['Battery_1_Charge_Efficiency'][site_id]
 
-    hyp['env']['capacity'] = capacity
-    hyp['env']['power'] = power_limit
-    hyp['env']['efficiency'] = charge_efficiency
+    hyp['env']['capacity'] = float(capacity)
+    hyp['env']['power'] = float(power_limit)
+    hyp['env']['efficiency'] = float(charge_efficiency)
 
     env = registry.make(**hyp['env'], logger=transition_logger)
     print('------')
