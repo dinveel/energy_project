@@ -72,6 +72,8 @@ def init_fresh(hyp):
     print('')
     # Буффер создает копию файла (buffer_size x observation_space_size) забитую 0ми (np.array)
     # он пока пустой
+    print(buffer.data)
+
 
     nets = init_nets(env, hyp)
     writers = init_writers(counters, paths)

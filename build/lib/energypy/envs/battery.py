@@ -244,8 +244,14 @@ if __name__ == '__main__':
     #env = Battery()
     env = Battery(power = power_limit, capacity = capacity, efficiency = charge_efficiency, episode_length = episode_length)
     #data = env.dataset.get_data(0)
-    #print(env.dataset.dataset)  # the dataset is for 'train' (because of the deafult train mode and reset() thing in datasets.py which sets it like that)
-
+    print('normal')
+    print(env.dataset.dataset['features'][0])  # the dataset is for 'train' (because of the deafult train mode and reset() thing in datasets.py which sets it like that)
+    print('')
+    print('REDONE')
+    print(env.dataset.dataset['features'].shape[0])
+    print(np.concatenate(env.dataset.dataset['features'], axis=0)[1])
+    redone = np.concatenate(env.dataset.dataset['features'], axis=0)
+    print(redone)
     
     obs = env.reset()     # reset() gives 1st row from dataset
 

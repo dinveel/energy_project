@@ -44,6 +44,8 @@ energypy/envs/base.py
 energypy/envs/battery.py
 energypy/envs/gym_wrappers.py
 energypy/envs/play_gym.py
+experiments/battery/hello/hyperparameters.json
+experiments/battery/hello/logs/transitions.data
 tests/test_battery.py
 tests/test_checkpoint.py
 tests/test_dataset.py
