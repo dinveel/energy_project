@@ -152,6 +152,7 @@ class Battery(AbstractEnv):
 
     def step(self, action):
         action = action.reshape(self.n_batteries, 1)    # [-power;power] already in W
+        action = action * self.capacity
 
         current_charge = self.charge
 
