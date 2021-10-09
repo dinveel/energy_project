@@ -36,14 +36,8 @@ def main(
 
     utils.set_seeds(hyp['seed'])
 
-    print(hyp)
-    print(paths)
     json_util.save(hyp, paths['run'] / 'hyperparameters.json')
 
-    print('------')
-    print('starting to fill the buffer')
-    print('------')
-    print('')
     if not buffer.full:
         sample_random(
             env,
@@ -56,7 +50,7 @@ def main(
         )
         memory.save(buffer, paths['run'] / 'random.pkl')
         memory.save(buffer, paths['experiment'] / 'random.pkl')
-    print(buffer.data)
+    
     rewards = defaultdict(list)
     for _ in range(int(hyp['n-episodes'])):
         if counters['train-episodes'] % hyp['test-every'] == 0:
@@ -93,7 +87,8 @@ def main(
             transition_logger
         )
 
-        train_steps = len(train_rewards) * hyp.get('episode_length', 48)
+        train_steps = len(train_rewards) * hyp.get('episode_length', 96)
+        # Было 48 (хз с чем связано)
 
         print(f'training \n step {counters["train-steps"]:6.0f}, {train_steps} steps')
         for _ in tqdm(range(train_steps)):

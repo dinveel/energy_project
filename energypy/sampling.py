@@ -5,6 +5,8 @@ from energypy import random_policy
 from tqdm import tqdm
 from energypy import utils, memory
 
+from time import sleep
+
 
 def episode(
     env,
@@ -16,17 +18,27 @@ def episode(
     logger=None
 ):
     obs = env.reset(mode=mode)
-    done = False
 
+    print(obs)
+    sleep(0.2)
+
+    done = False
+    if mode == 'test':
+      print('got env.reset test')
+      print(obs)
     reward_scale = hyp['reward-scale']
 
     #  create one list per parallel episode we are running
     episode_rewards = [list() for _ in range(obs.shape[0])]
 
     while not done:
+        if mode == 'test':
+          print('getting actor(obs)')
         act, _, deterministic_action = actor(obs)
 
         if mode == 'test':
+            print('checking if mode==test in episode')
+            print(deterministic_action)
             act = deterministic_action
 
         next_obs, reward, done, _ = env.step(np.array(act))
@@ -169,8 +181,9 @@ def sample_test(
 
     print(f' testing on {n_test_eps} episodes')
     pbar = tqdm(total=n_test_eps)
-    while not test_done:
 
+    while not test_done:
+        print('starting run_episode on mode=test')
         test_rewards = run_episode(
             env,
             buffer,

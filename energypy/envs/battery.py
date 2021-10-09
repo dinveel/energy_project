@@ -131,6 +131,7 @@ class Battery(AbstractEnv):
 
         self.dataset.reset(mode)   # sets self.cursor = 0
         self.test_done = self.dataset.test_done
+        
         return self.get_observation()
 
     def get_initial_charge(self):
