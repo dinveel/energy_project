@@ -3,7 +3,7 @@ import numpy as np
 from energypy import random_policy
 
 from tqdm import tqdm
-from energypy import utils
+from energypy import utils, memory
 
 
 def episode(
@@ -214,3 +214,6 @@ def sample_train(
     )
     utils.stats('train', 'train-episodes', counters, episode_rewards)
     return episode_rewards
+
+
+

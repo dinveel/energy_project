@@ -1,1 +1,0 @@
-{"run-name": "hello", "initial-log-alpha": 0.0, "gamma": 0.99, "rho": 0.995, "buffer-size": 38400, "reward-scale": 500, "lr": 0.0003, "lr-alpha": 3e-05, "batch-size": 3840, "n-episodes": 10, "test-every": 256, "n-tests": "all", "size-scale": 10, "env": {"name": "battery", "n_batteries": 1, "power": 75000.0, "capacity": 

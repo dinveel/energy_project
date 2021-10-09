@@ -216,7 +216,4 @@ def sample_train(
     return episode_rewards
 
 
-if __name__ == '__main__':
-
-
 
