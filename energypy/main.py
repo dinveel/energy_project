@@ -34,7 +34,7 @@ def main(
     if hyp['env']['name'] == 'battery':
       hyp['buffer-size'] = len(env.dataset.dataset['features'])
 
-    util.set_seeds(hyp['seed'])
+    utils.set_seeds(hyp['seed'])
 
     json_util.save(hyp, paths['run'] / 'hyperparameters.json')
 

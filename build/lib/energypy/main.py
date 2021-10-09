@@ -30,9 +30,9 @@ def main(
     if 'seed' not in hyp.keys():
         hyp['seed'] = choice(range(int(1e4)))
 
+    # Если это env = 'battery' -> ему соот-ет 'nem-dataset' -> buffer_size = len(dataset)
     if hyp['env']['name'] == 'battery':
-      #hyp['buffer-size'] = env.dataset.shape[0]
-      print(len(env.dataset.dataset['features'][0])
+      hyp['buffer-size'] = len(env.dataset.dataset['features'])
 
     utils.set_seeds(hyp['seed'])
 
